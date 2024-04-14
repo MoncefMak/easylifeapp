@@ -4,15 +4,18 @@ from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from accounts.models import User
-from accounts.tests.factory import UserFactory
 from companys.models import Company, CompanyBranch
 from core.models import Country, City
 
 
 class UserAPITestCase(TestCase):
     def setUp(self):
-        self.user = UserFactory()
-        self.user.save()
+        self.user = User.objects.create_user(
+            email='test@example.com',
+            username='testuser',
+            password='testpassword',
+            is_active=True
+        )
         self.client = APIClient()
 
     def get_access_token(self):
@@ -107,4 +110,3 @@ class UserAPITestCase(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('access', response.data)
-
