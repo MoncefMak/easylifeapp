@@ -1,14 +1,29 @@
+name: Django CI
+
 on:
   push:
     branches:
       - master
-      
+
 concurrency: master
 
 jobs:
   build:
 
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: github_actions
+        ports:
+          - 5432:5432
+        # needed because the postgres container does not provide a healthcheck
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
 
     steps:
     - name: Checkout Code
@@ -19,6 +34,11 @@ jobs:
       with:
         python-version: 3.11
 
+    - name: Install PostgreSQL Prerequisites
+      run: |
+        sudo apt-get update
+        sudo apt-get install libpq-dev
+
     - name: Install Python Dependencies
       run: |
         python -m pip install --upgrade pip
@@ -27,5 +47,5 @@ jobs:
     - name: Run Migrations
       run: python manage.py migrate
 
-    - name: Run Account Tests
-      run: python manage.py test accounts.tests
+    - name: Run Tests
+      run: python manage.py test 
